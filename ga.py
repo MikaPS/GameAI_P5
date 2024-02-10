@@ -63,7 +63,7 @@ class Individual_Grid(object):
         return self._fitness
 
     # Mutate a genome into a new genome.  Note that this is a _genome_, not an individual!
-    def mutate(self, genome: list) -> list:
+    def mutate(self, genome: list[list[str]]) -> list[list[str]]:
         # TODO: implement a mutation operator, also consider not mutating this individual
         # TODO: also consider weighting the different tile types so it's not uniformly random
         # TODO: consider putting more constraints on this to prevent pipes in the air, etc
@@ -72,6 +72,8 @@ class Individual_Grid(object):
         # genome is most likely a list/matrix, can be accessed with []
         left = 1   # left most column of level
         right = width - 1 # right-most column of level
+        
+        
         for y in range(height): 
             for x in range(left, right):
                 # print(genome[x][y])
@@ -80,7 +82,7 @@ class Individual_Grid(object):
         return genome
 
     # Create zero or more children from self and other
-    def generate_children(self, other):
+    def generate_children(self, other): # other: Individual_Grid
         c1_genome = copy.deepcopy(self.genome)
         c2_genome = copy.deepcopy(self.genome)
         # Leaving first and last columns alone...
@@ -92,10 +94,24 @@ class Individual_Grid(object):
             for x in range(left, right):
                 # TODO: Which one should you take?  Self, or other?  Why?
                 # TODO: consider putting more constraints on this to prevent pipes in the air, etc
-                if random.random() > 0.5:
-                    c1_genome[y][x] = other.genome[y][x]
+                    
+                cur_genome = c1_genome if random.random() > 0.5 else c2_genome
+
+                if other.genome[y][x] == "T" or cur_genome[y][x] == "T":
+                    if y > height - 4:
+                        cur_genome[y][x] = "T"
+                    else:
+                        cur_genome[y][x] = "-"
+                        continue
+                    n = y + 1           
+                    while cur_genome[n][x] != "X":
+                        cur_genome[n][x] = "|"
+                        n += 1
+                elif cur_genome[y][x] == "|" and y < height - 4:
+                    continue 
                 else:
-                    c2_genome[y][x] = other.genome[y][x]
+                    cur_genome[y][x] = other.genome[y][x]
+                
         # do mutation; note we're returning a one-element tuple here
         c1_genome = self.mutate(c1_genome)
         c2_genome = self.mutate(c2_genome)
@@ -364,6 +380,8 @@ def generate_successors(population: list[Individual_Grid]) -> list[Individual_Gr
     # TODO: Design and implement this
     # Hint: Call generate_children() on some individuals and fill up results.
     # print("population: ", population)
+
+    population = sorted(population, key=lambda ind: ind.fitness(), reverse=True)
     
     # do it at random at the beginning
     selected: list[Individual_Grid] = []
@@ -379,7 +397,7 @@ def generate_successors(population: list[Individual_Grid]) -> list[Individual_Gr
     for i in range(0, len(selected), 2):
         if i + 1 >= len(selected):
             break
-        results += list(selected[i].generate_children(selected[i+1]))
+        results += list(selected[i].generate_children(selected[-1-i]))
         
     return results
 
@@ -395,7 +413,7 @@ def ga():
     with mpool.Pool(processes=os.cpu_count()) as pool:
         init_time = time.time()
         # TODO: (Optional) change population initialization
-        population = [Individual.random_individual() if random.random() < 0.9
+        population = [Individual.random_individual() if random.random() < 0.1
                       else Individual.empty_individual()
                       for _g in range(pop_limit)]
         # But leave this line alone; we have to reassign to population because we get a new population that has more cached stuff in it.
@@ -411,9 +429,10 @@ def ga():
         try:
             while True:
                 now = time.time()
+                best = Individual.empty_individual()
                 # Print out statistics
                 if generation > 0:
-                    best = max(population, key=Individual.fitness) # ! causing crash
+                    best = max(population, key=Individual.fitness)
                     print("Generation:", str(generation))
                     print("Max fitness:", str(best.fitness()))
                     print("Average generation time:", (now - start) / generation)
@@ -422,8 +441,9 @@ def ga():
                         for row in best.to_level():
                             f.write("".join(row) + "\n")
                 generation += 1
+
                 # TODO: Determine stopping condition
-                stop_condition = False
+                stop_condition = False # best.fitness() > 2
                 if stop_condition:
                     break
                 # TODO: Also consider using FI-2POP as in the Sorenson & Pasquier paper
