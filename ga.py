@@ -11,6 +11,9 @@ import math
 width = 200
 height = 16
 
+pf_width = 4
+pf_height = 4
+
 options = [
     "-",  # an empty space
     "X",  # a solid wall
@@ -25,6 +28,231 @@ options = [
     #"v",  # a flagpole, do not generate
     #"m"  # mario's start position, do not generate
 ]
+
+prefabs = {
+    "air": {
+        "map": [
+            ['-', '-', '-', '-'],
+            ['-', '-', '-', '-'],
+            ['-', '-', '-', '-'],
+            ['-', '-', '-', '-']
+        ],
+        "prefered": {
+            "up": [
+                "air",
+                "stairs",
+                "ground"
+            ],
+            "down": [
+                "pipe",
+                "enemy",
+                "jump_gap",
+                "power_up",
+                "stairs",
+                "ground"
+            ],
+            "sides": [
+                "air",
+                "jump_gap",
+                "pipe",
+                "enemy",
+                "ground"
+            ]
+        }   
+    },
+    "jump_gap": {
+        "map": [
+            ['-', 'o', 'o', '-'],
+            ['o', '-', '-', 'o'],
+            ['-', '-', '-', '-'],
+            ['X', '-', '-', 'X']
+        ],
+        "prefered": {
+            "up": [
+                "air"
+            ],
+            "down": [
+                "enemy"
+            ],
+            "sides": [
+                "pipe",
+                "enemy",
+                "stairs",
+                "power_up"
+            ]
+        }            
+    },
+    "pipe": {
+        "map": [
+            ['-', 'T', '-', '-'],
+            ['-', '|', 'o', 'T'],
+            ['-', '|', '-', '|'],
+            ['X', 'X', 'X', 'X']
+        ],
+        "prefered": {
+            "up": [
+                "air"
+            ],
+            "down": [
+                "enemy",
+                "jump_gap"
+            ],
+            "sides": [
+                "jump_gap",
+                "power_up"
+            ]
+        }
+    },
+    "enemy": {
+        "map": [
+            ['-', '-', '-', '-'],
+            ['-', '-', 'E', '-'],
+            ['-', '-', '-', '-'],
+            ['X', 'X', 'X', 'X']
+        ],
+        "prefered": {
+            "up": [
+                "air",
+                "jump_gap"
+            ],
+            "down": [
+                "jump_gap"
+            ],
+            "sides": [
+                "jump_gap",
+                "pipe",
+                "stairs"
+            ]
+        }
+    },
+    "power_up": {
+        "map": [
+            ['-', 'E', '-', '-'],
+            ['B', '?', 'M', '?'],
+            ['-', '-', '-', '-'],
+            ['-', '-', '-', '-']
+        ],
+        "prefered": {
+            "up": [
+                "air"
+            ],
+            "down": [
+                "enemy",
+                "jump_gap",
+                "stairs",
+                "ground",
+                "pipe"
+            ],
+            "sides": [
+                "jump_gap",
+                "pipe",
+                "enemy",
+                "stairs"
+            ]
+        }
+    },
+    "stairs": {
+        "map": [
+            ['-', '-', '-', 'X'],
+            ['-', '-', 'X', 'X'],
+            ['-', 'X', 'X', 'X'],
+            ['X', 'X', 'X', 'X']
+        ],
+        "prefered": {
+            "up": [
+                "air",
+                "jump_gap"
+            ],
+            "down": [
+                "air"
+            ],
+            "sides": [
+                "jump_gap",
+                "pipe",
+                "enemy",
+                "power_up"
+            ]
+        }
+    }
+    ,
+    "ground": {
+        "map": [
+            ['-', '-', 'B', '-'],
+            ['-', '-', '-', '-'],
+            ['-', '-', '-', '-'],
+            ['X', 'X', 'X', 'X']
+        ],
+        "prefered": {
+            "up": [
+                "air",
+                "power_up",
+                "jump_gap",
+            ],
+            "down": [
+                "jump_gap",
+                "ground",
+                "power_up"
+            ],
+            "sides": [
+                "ground",
+                "pipe",
+                "enemy",
+                "stairs",
+                "power_up"
+            ]
+        }
+    }
+}
+
+def set_section(genome, x_start, y_start, prefab_name):
+    for x in range(pf_width):
+        for y in range(pf_height):
+            genome[y_start + y][x_start + x] = prefabs[prefab_name]["map"][y][x]
+    return genome
+
+def get_random_preference(prefab_name, direction) -> str:
+    return random.choice(prefabs[prefab_name]["prefered"][direction])
+
+# foreach neighbor:
+#     is it's prefab in this section's prefered list?
+#     if not, replace neighbor with section from other genome
+
+
+# XXXX XXXX
+# XXXX XXXX
+# XXXX XXXX
+# XXXX XXXX
+
+def get_section(x, y) -> tuple[int, int, int, int]:
+    x1 = (x // pf_width) * pf_width
+    y1 = (y // pf_height) * pf_height
+    return (x1, y1, x1 + pf_width, y1 + pf_height)
+
+
+def get_prefab(genome, section: tuple[int, int, int, int])-> str:
+    for prefab_name in prefabs:
+        matches = True
+        prefab_map = prefabs[prefab_name]["map"]
+        for x in range(pf_width):
+            for y in range(pf_height):
+                if prefab_map[y][x] != genome[y + section[1]][x + section[0]]:
+                    matches = False
+        if matches:
+            return prefab_name
+    return None
+
+def get_neighbors(section: tuple[int, int, int, int]) -> dict[tuple[int, int, int, int]]:
+    neighbors = {}
+    if section[0] > 0: # left
+        neighbors["left"] = (section[0] - pf_width, section[1], section[2] - pf_width, section[3])
+    if section[2] < width: # right
+        neighbors["right"] = (section[0] + pf_width, section[1], section[2] + pf_width, section[3])
+    if section[3] < height: # down
+        neighbors["down"] = (section[0], section[1] + pf_height, section[2], section[3] + pf_height)
+    if section[1] > 0: # up
+        neighbors["up"] = (section[0], section[1] - pf_height, section[2], section[3] - pf_height)
+
+    return neighbors
 
 # The level as a grid of tiles
 
@@ -73,12 +301,37 @@ class Individual_Grid(object):
         left = 1   # left most column of level
         right = width - 1 # right-most column of level
         
-        
+        visited = {}
+
         for y in range(height): 
             for x in range(left, right):
-                # print(genome[x][y])
-                pass
+                if random.random() < 0.2:
+                
+                    section = get_section(x, y)
+                    prefab_name = get_prefab(genome, section)
+                    if prefab_name == None:
+                        rand_prefab = random.choice(list(prefabs.keys()))
+                        genome = set_section(genome, section[0], section[1], rand_prefab)
+                        continue
+                    
+                    if section not in visited:
+                        neighbors = get_neighbors(section)
 
+                        for direction in neighbors:
+                            neighbor = neighbors[direction]
+                            direction = "sides" if direction == "left" or direction == "right" else direction
+                            if get_prefab(genome, neighbor) not in prefabs[prefab_name]["prefered"][direction]:
+                                genome = set_section(genome, neighbor[0], neighbor[1], get_random_preference(prefab_name, direction))
+                        
+                        visited[section] = True
+
+            if y < 4:
+                section = get_section(x, y)
+                prefab_name = get_prefab(genome, section)
+                if prefab_name == "stairs" or prefab_name == "pipe":
+                    genome = set_section(genome, neighbor[0], neighbor[1], get_random_preference(prefab_name, direction))
+
+            
         return genome
 
     # Create zero or more children from self and other
@@ -89,32 +342,57 @@ class Individual_Grid(object):
         # do crossover with other
         left = 1
         right = width - 1
+        visited = {}
         # print("genome: ", new_genome)
         for y in range(height):
             for x in range(left, right):
                 # TODO: Which one should you take?  Self, or other?  Why?
                 # TODO: consider putting more constraints on this to prevent pipes in the air, etc
-                    
                 cur_genome = c1_genome if random.random() > 0.5 else c2_genome
+                # SECTION PREFAB
 
-                if other.genome[y][x] == "T" or cur_genome[y][x] == "T":
-                    if y > height - 4:
-                        cur_genome[y][x] = "T"
-                    else:
-                        cur_genome[y][x] = "-"
-                        continue
-                    n = y + 1           
-                    while cur_genome[n][x] != "X":
-                        cur_genome[n][x] = "|"
-                        n += 1
-                elif cur_genome[y][x] == "|" and y < height - 4:
-                    continue 
-                else:
-                    cur_genome[y][x] = other.genome[y][x]
+                section = get_section(x, y)
+                prefab_name = get_prefab(cur_genome, section)
+                if prefab_name == None:
+                    rand_prefab = random.choice(list(prefabs.keys()))
+                    cur_genome = set_section(cur_genome, section[0], section[1], rand_prefab)
+                    continue
+                
+                if section not in visited:
+                    neighbors = get_neighbors(section)
+
+                    for direction in neighbors:
+                        neighbor = neighbors[direction]
+                        direction = "sides" if direction == "left" or direction == "right" else direction
+                        if get_prefab(cur_genome, neighbor) not in prefabs[prefab_name]["prefered"][direction]:
+                            other_prefab = get_prefab(other.genome, neighbor)
+                            if other_prefab == None:
+                                cur_genome = set_section(cur_genome, neighbor[0], neighbor[1], get_random_preference(prefab_name, direction))
+                                continue
+                            cur_genome = set_section(cur_genome, neighbor[0], neighbor[1], other_prefab)
+                    
+                    visited[section] = True
                 
         # do mutation; note we're returning a one-element tuple here
         c1_genome = self.mutate(c1_genome)
+        c1_genome[14][0] = "m"
+        c1_genome[15][0] = "X"
+        c1_genome[15][1] = "X"
+        c1_genome[7][-1] = "v"
+        for col in range(8, 14):
+            c1_genome[col][-1] = "f"
+        for col in range(14, 16):
+            c1_genome[col][-1] = "X"
+
         c2_genome = self.mutate(c2_genome)
+        c2_genome[14][0] = "m"
+        c2_genome[15][0] = "X"
+        c2_genome[15][1] = "X"
+        c2_genome[7][-1] = "v"
+        for col in range(8, 14):
+            c2_genome[col][-1] = "f"
+        for col in range(14, 16):
+            c2_genome[col][-1] = "X"
         return (Individual_Grid(c1_genome),Individual_Grid(c2_genome))
 
     # Turn the genome into a level string (easy for this genome)
@@ -140,11 +418,15 @@ class Individual_Grid(object):
         # TODO: consider putting more constraints on this to prevent pipes in the air, etc
         # TODO: also consider weighting the different tile types so it's not uniformly random
         g = [random.choices(options, k=width) for row in range(height)]
-        g[15][:] = ["X"] * width
+        for x in range(0, width, pf_width):
+            for y in range(0, height, pf_height):
+                g = set_section(g, x, y, random.choice(list(prefabs.keys())))
         g[14][0] = "m"
         g[7][-1] = "v"
-        g[8:14][-1] = ["f"] * 6
-        g[14:16][-1] = ["X", "X"]
+        for col in range(8, 14):
+            g[col][-1] = "f"
+        for col in range(14, 16):
+            g[col][-1] = "X"
         return cls(g)
 
 
@@ -414,7 +696,7 @@ def ga():
         init_time = time.time()
         # TODO: (Optional) change population initialization
         population = [Individual.random_individual() if random.random() < 0.1
-                      else Individual.empty_individual()
+                      else Individual.random_individual()
                       for _g in range(pop_limit)]
         # But leave this line alone; we have to reassign to population because we get a new population that has more cached stuff in it.
         population = pool.map(Individual.calculate_fitness,
