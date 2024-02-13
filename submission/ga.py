@@ -41,25 +41,21 @@ prefabs = {
             "up": [
                 "air",
                 "stairs",
-                "ground",
-                "box"
+                "ground"
             ],
             "down": [
                 "pipe",
                 "enemy",
                 "jump_gap",
                 "stairs",
-                "ground",
-                "other",
-                "box",
+                "ground"
             ],
             "sides": [
                 "air",
                 "jump_gap",
                 "pipe",
                 "enemy",
-                "ground",
-                "other"
+                "ground"
             ]
         }   
     },
@@ -72,21 +68,16 @@ prefabs = {
         ],
         "prefered": {
             "up": [
-                "air",
-                "other",
+                "air"
             ],
             "down": [
-                "enemy",
-                "other",
-                "box"
+                "enemy"
             ],
             "sides": [
                 "pipe",
                 "enemy",
                 "stairs",
-                "power_up",
-                "other",
-                "box",
+                "power_up"
             ]
         }            
     },
@@ -99,8 +90,7 @@ prefabs = {
         ],
         "prefered": {
             "up": [
-                "air",
-                "other"
+                "air"
             ],
             "down": [
                 "enemy",
@@ -108,8 +98,7 @@ prefabs = {
             ],
             "sides": [
                 "enemy",
-                "power_up",
-                "box",
+                "power_up"
             ]
         }
     },
@@ -123,22 +112,15 @@ prefabs = {
         "prefered": {
             "up": [
                 "air",
-                "jump_gap",
-                "power_up",
-                "other",
-                "box"
+                "jump_gap"
             ],
             "down": [
-                "jump_gap",
-                "power_up",
-                "other"
+                "jump_gap"
             ],
             "sides": [
                 "jump_gap",
-                "power_up",
                 "pipe",
-                "stairs",
-                "box",
+                "stairs"
             ]
         }
     },
@@ -151,46 +133,19 @@ prefabs = {
         ],
         "prefered": {
             "up": [
-                "air",
+                "air"
             ],
             "down": [
                 "enemy",
                 "stairs",
                 "ground",
-                "pipe",
-                "box"
+                "pipe"
             ],
             "sides": [
                 "jump_gap",
                 "pipe",
                 "enemy",
-                "stairs",
-                "other",
-                "box"
-            ]
-        }
-    },
-    "box": {
-        "map": [
-            ['B', 'B', 'B', 'B'],
-            ['B', '-', '-', 'B'],
-            ['B', '-', 'E', 'B'],
-            ['B', 'B', 'B', 'B']
-        ],
-        "prefered": {
-            "up": [
-                "air"
-            ],
-            "down": [
-                "ground",
-                "air"
-            ],
-            "sides": [
-                "power_up",
-                "pipe",
-                "enemy",
-                "stairs",
-                "other"
+                "stairs"
             ]
         }
     },
@@ -213,8 +168,7 @@ prefabs = {
                 "jump_gap",
                 "pipe",
                 "enemy",
-                "power_up",
-                "box",
+                "power_up"
             ]
         }
     }
@@ -231,50 +185,21 @@ prefabs = {
                 "air",
                 "power_up",
                 "jump_gap",
-                "other",
-                "box"
             ],
             "down": [
                 "jump_gap",
                 "ground",
-                "power_up",
-            ],
-            "sides": [
-                "ground",
-                "enemy",
-                "stairs",
-                "power_up",
-                "other"
-            ]
-        }
-    },
-    "other": {
-        "map": [
-            ['-', 'o', 'o', '?'],
-            ['o', '?', 'M', '-'],
-            ['-', 'o', '-', 'B'],
-            ['-', '-', '-', '-']
-        ],
-        "prefered": {
-            "up": [
-                "jump_gap",
-                "air",
                 "power_up"
             ],
-            "down": [
-                "enemy",
-                "power_up",
-                "stairs",
-                "pipe"
-            ],
             "sides": [
+                "ground",
                 "pipe",
                 "enemy",
                 "stairs",
                 "power_up"
             ]
-        }            
-    },
+        }
+    }
 }
 
 def set_section(genome, x_start, y_start, prefab_name):
